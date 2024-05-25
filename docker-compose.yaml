@@ -1,0 +1,45 @@
+version: "3.5"
+
+services:
+  warehouse-app:
+    container_name: warehouse-app
+    image: docker.io/library/warehouse-dev
+    working_dir: /go/src/warehouse
+    tty: true
+    restart: always
+    ports:
+      - "3000:3000"
+#      - "443:443"
+    volumes:
+      - .:/go/src/warehouse
+      - ${SSH_AUTH_SOCK}:/ssh-agent
+    networks:
+      - warehouse-network
+  warehouse-postgres:
+    container_name: warehouse-postgres
+    image: postgres:16.3
+    restart: always
+    tty: true
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 111111
+    ports:
+      - "5432:5432"
+    volumes:
+     - db:/var/lib/postgresql/data
+    networks:
+      - warehouse-network
+  # warehouse-memcached:
+  #   container_name: warehouse-memcached
+  #   image: library/memcached:1.6-alpine
+  #   restart: always
+  #   ports:
+  #     - "11211"
+  #   networks:
+  #     - warehouse-network
+volumes:
+  db:
+
+networks:
+ warehouse-network:
+   driver: bridge
