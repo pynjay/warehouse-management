@@ -13,7 +13,7 @@ func init() {
 }
 
 func upCreateUsersTable(ctx context.Context, tx *sql.Tx) error {
-    var queries = `CREATE TABLE IF NOT EXISTS users (
+	var queries = `CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         email VARCHAR(100) NOT NULL,
         phone VARCHAR(20),

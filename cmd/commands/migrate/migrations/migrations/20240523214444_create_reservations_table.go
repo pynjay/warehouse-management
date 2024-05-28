@@ -13,10 +13,11 @@ func init() {
 }
 
 func upCreateReservationsTable(ctx context.Context, tx *sql.Tx) error {
-    var queries = `CREATE TABLE IF NOT EXISTS reservations (
-        reservation_id SERIAL PRIMARY KEY,
+	var queries = `CREATE TABLE IF NOT EXISTS reservations (
+        id SERIAL PRIMARY KEY,
         warehouse_id INT REFERENCES warehouses(id),
         product_id INT REFERENCES products(id),
+        order_id INT NOT NULL,
         quantity INT NOT NULL,
         status VARCHAR(20) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

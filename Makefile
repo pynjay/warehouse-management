@@ -23,3 +23,7 @@ build_prod:
 .PHONY: build
 build:
 	@go build -o warehouse cmd/main.go
+
+all:
+	@make build_dev
+	docker-compose up

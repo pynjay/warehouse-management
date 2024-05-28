@@ -1,59 +1,41 @@
 package repository
 
 import (
-	"fmt"
+	"warehouse/internal/config"
+	"warehouse/internal/repository"
 	"warehouse/internal/repository/models"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type ProductsRepositoryPostgres struct {
-	db *gorm.DB
+	db     *gorm.DB
+	config config.Config
 }
 
-func NewProductsRepositoryPostgres(db *gorm.DB) *ProductsRepositoryPostgres {
-	return &ProductsRepositoryPostgres{db: db}
-}
-
-func (s *ProductsRepositoryPostgres) Product(accountId, productId int) (*models.Product, error) {
-	var product models.Product
-
-	return &product, s.db.Where("crm_account_id = ? AND product_id = ?", accountId, productId).First(&product).Error
+func NewProductsRepositoryPostgres(db *gorm.DB, config config.Config) *ProductsRepositoryPostgres {
+	return &ProductsRepositoryPostgres{db: db, config: config}
 }
 
 func (s *ProductsRepositoryPostgres) ProductById(productId int) (*models.Product, error) {
 	var product models.Product
 
-	return &product, s.db.Where("product_id = ?", productId).First(&product).Error
+	return &product, s.db.Where("id = ?", productId).First(&product).Error
 }
 
-// func (s *ProductsRepositoryPostgres) ProductsByUserId(userId int) ([]*models.Product, error) {
-// 	var products []*models.Product
-//
-// 	return products, s.db.Find(&products, userId).Error
-// }
+func (s *ProductsRepositoryPostgres) Create(products []*models.Product) (models.ProductCollection, error) {
+	err := s.db.CreateInBatches(&products, repository.CreateProductsBatchSize).Error
 
-func (s *ProductsRepositoryPostgres) Create(product *models.Product) (*models.Product, error) {
-	err := s.db.
-		Clauses(
-			clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{"product_id"}),
-			},
-		).Create(&product).Error
-	if err != nil {
-		return product, err
-	}
-
-	return product, nil
+	return models.ProductCollection(products), err
 }
 
-func (s *ProductsRepositoryPostgres) Update(product *models.Product) error {
-	err := s.db.Where("product_id = ?", product.ID).Updates(product).Error
+func (s *ProductsRepositoryPostgres) FindBySKUCodes(codes []string) (models.ProductCollection, error) {
+	var products []*models.Product
 
-	if err != nil {
-		return fmt.Errorf("error save product to mysql. %w", err)
-	}
+	err := s.db.Table("products").
+		Where("sku IN ?", codes).
+		Find(&products).
+		Error
 
-	return nil
+	return models.ProductCollection(products), err
 }

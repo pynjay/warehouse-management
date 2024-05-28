@@ -13,7 +13,7 @@ func init() {
 }
 
 func upCreateWarehousesTable(ctx context.Context, tx *sql.Tx) error {
-    var queries = `CREATE TABLE IF NOT EXISTS warehouses (
+	var queries = `CREATE TABLE IF NOT EXISTS warehouses (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         is_available BOOLEAN DEFAULT TRUE,

@@ -1,9 +1,14 @@
 package models
 
+import "time"
+
+type ProductCollection []*Product
+
 type Product struct {
-    ID          uint   `gorm:"primaryKey;column:id"`
-    SKU         string `gorm:"uniqueIndex;column:sku"`
-    Quantity    int `gorm:"column:quantity"`
-    Reserved    bool `gorm:"column:quantity"`
-    WarehouseID uint `gorm:"column:quantity"`
+	ID        uint      `gorm:"primaryKey"`
+	Name      string    `gorm:"column:name"`
+	Size      string    `gorm:"column:size"`
+	SKU       string    `gorm:"uniqueIndex;column:sku"`
+	CreatedAt time.Time `gorm:"autoCreateTime"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 }

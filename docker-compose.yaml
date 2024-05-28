@@ -1,20 +1,31 @@
 version: "3.5"
 
-services:
-  warehouse-app:
-    container_name: warehouse-app
+x-warehouse-app-common:
+  &warehouse-app-common
     image: docker.io/library/warehouse-dev
     working_dir: /go/src/warehouse
     tty: true
-    restart: always
-    ports:
-      - "3000:3000"
-#      - "443:443"
     volumes:
       - .:/go/src/warehouse
       - ${SSH_AUTH_SOCK}:/ssh-agent
     networks:
       - warehouse-network
+
+
+services:
+  warehouse-app:
+    <<: *warehouse-app-common
+    container_name: warehouse-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - HEALTHCHECK_URL=http://0.0.0.0/ping
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f ${HEALTHCHECK_URL} || exit 1"]
+      timeout: 2s
+      retries: 4
+
   warehouse-postgres:
     container_name: warehouse-postgres
     image: postgres:16.3
@@ -23,12 +34,26 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: 111111
+      POSTGRES_DB: warehousedb
     ports:
       - "5432:5432"
     volumes:
      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U user -d warehousedb
+      timeout: 2s
+      retries: 4
     networks:
       - warehouse-network
+
+  migrate:
+    <<: *warehouse-app-common
+    container_name: migrate_warehouse
+    depends_on:
+      warehouse-postgres:
+        condition: service_healthy
+    command: [ "go", "run", "./cmd/main.go", "migration", "up" ]
+
   # warehouse-memcached:
   #   container_name: warehouse-memcached
   #   image: library/memcached:1.6-alpine
