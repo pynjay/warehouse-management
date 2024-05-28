@@ -25,5 +25,6 @@ build:
 	@go build -o warehouse cmd/main.go
 
 all:
+	@make build_base
 	@make build_dev
 	docker-compose up
